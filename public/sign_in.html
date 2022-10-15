@@ -1,1 +1,49 @@
-这是登录页
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录页</title>
+</head>
+
+<body>
+    <form id="signInForm">
+        <div>
+            <label for="">用户名 <input type="text" name="name" id=""></label>
+        </div>
+        <div>
+            <label for="">密码 <input type="password" name="password" id=""></label>
+        </div>
+        <div>
+            <button type="submit">登录</button>
+        </div>
+    </form>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script>
+        const $form = $('#signInForm')
+        //上传页面输入的数据
+        $form.on('submit', (e) => {
+            //关掉默认
+            e.preventDefault()
+            const name = $form.find('input[name=name]').val()
+            const password = $form.find('input[name=password]').val()
+            console.log(name, password)
+            //发起ajax请求,注册，成功之后执行then(跳转到登录页)
+            $.ajax({
+                method: 'POST',
+                url: '/sign_in',
+                contentType: 'text/json; charset=UTF-8',
+                // data: JSON.stringify({ name: name, password: password })
+                data: JSON.stringify({ name, password })
+            }).then(() => {
+                alert('恭喜登录成功')
+                //跳转到首页
+                location.href = '/home.html'
+            }, () => { })
+        })
+    </script>
+</body>
+
+</html>
