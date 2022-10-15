@@ -21,32 +21,61 @@ var server = http.createServer(function(request, response){
   console.log('有个傻子发请求过来啦！路径（带查询参数）为：' + pathWithQuery)
 
 
-  response.statusCode = 200
-  //默认首页
-  const filepath = path === '/' ? '/index.html' : path
-//   console.log(filepath.lastIndexOf('.'))
-  const index = filepath.lastIndexOf('.')
-  const suffix = filepath.substring(index)  //suffix后缀
-//   console.log(h)
-//哈希  
-  const fileTypes = {
-    '.html': 'text/html',
-    '.js': 'text/javascript',
-    '.css': 'text/css',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg'
-  }
-  response.setHeader('Content-Type', `${fileTypes[suffix] || 'text/html'};charset=utf-8`)
-  let content
-  try{
-    content = fs.readFileSync(`./public${filepath}`)
-  } catch(error){
-    content = '文件不存在呀朋友'
-    response.statusCode = 404
-  }
-  
-  response.write(content)
-  response.end()
+  if(path === '/register' && method === 'POST'){
+    response.setHeader('Content-Type', 'text/html; charset=utf-8')
+    //获取现有数据库中的数据并转成数组
+    const userArray = JSON.parse(fs.readFileSync('./db/users.json'))
+    console.log('数据库现有的数据：'+userArray)
+    const array = []
+    request.on('data',(chunk)=>{  //监听请求传递数据，上传数据事件:data,
+      array.push(chunk)
+    })
+    //数据上传完毕，存入数据库
+    request.on('end', ()=>{
+      const string = Buffer.concat(array).toString()   // console.log(typeof string)
+      const obj = JSON.parse(string)    // console.log(obj.name); // console.log(obj.password)
+      const lastUser = userArray[userArray.length-1]
+      const newUser = {
+        //id为数据库已有用户中最后一个用户的id+1, 还要判断最后一个用户是否存在
+        id: lastUser ? lastUser.id+1 : 1,
+        name: obj.name,
+        password: obj.password
+      }
+      console.log(typeof newUser)
+      //将数据存进数组再转成字符串存进数据库
+      userArray.push(newUser)
+      fs.writeFileSync('./db/users.json',JSON.stringify(userArray))
+      response.end();
+    })     
+  } else{
+
+    response.statusCode = 200
+    //默认首页
+    const filepath = path === '/' ? '/index.html' : path
+    //   console.log(filepath.lastIndexOf('.'))
+    const index = filepath.lastIndexOf('.')
+    const suffix = filepath.substring(index)  //suffix后缀
+    //   console.log(h)
+    //哈希  
+    const fileTypes = {
+      '.html': 'text/html',
+      '.js': 'text/javascript',
+      '.css': 'text/css',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg'
+    }
+    response.setHeader('Content-Type', `${fileTypes[suffix] || 'text/html'};charset=utf-8`)
+    let content
+    try{
+      content = fs.readFileSync(`./public${filepath}`)
+    } catch(error){
+      content = '文件不存在呀朋友'
+      response.statusCode = 404
+    }
+    
+    response.write(content)
+    response.end()
+  } 
 
   /******** 代码结束，下面不要看 ************/
 })
